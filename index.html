@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joke Trainer</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --surface2: #0f3460;
+            --accent: #e94560;
+            --accent-hover: #ff6b81;
+            --text: #eaeaea;
+            --text-muted: #a0a0b8;
+            --border: #2a2a4a;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --radius: 12px;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .app {
+            max-width: 720px;
+            width: 100%;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+        header h1 span { color: var(--accent); }
+        header p {
+            color: var(--text-muted);
+            margin-top: 0.35rem;
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .settings-row label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .settings-row input {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.55rem 0.85rem;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .settings-row input:focus { border-color: var(--accent); }
+        .settings-row select {
+            flex: 1;
+            min-width: 200px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.55rem 0.85rem;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-family: var(--font);
+            outline: none;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+        .settings-row select:focus { border-color: var(--accent); }
+        .settings-row .key-input { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.15em; }
+        .settings-comment {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
+        .settings-comment a { color: var(--accent); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1.3rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            font-family: var(--font);
+            color: #fff;
+            background: var(--surface2);
+        }
+        .btn:hover { filter: brightness(1.15); }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; filter: none; }
+        .btn-primary { background: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-block { width: 100%; }
+
+        .mode-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 0 0.85rem;
+        }
+        .mode-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        .mode-btn {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            font-family: var(--font);
+        }
+        .mode-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+        .mode-btn.active {
+            background: var(--surface2);
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .premise-box {
+            background: var(--bg);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            min-height: 3.5rem;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text);
+            transition: border-color 0.3s;
+            font-family: var(--font);
+            resize: vertical;
+            outline: none;
+        }
+        .premise-box.placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 0.92rem;
+        }
+        .premise-box.loading {
+            border-color: var(--accent);
+            animation: pulse-border 1.2s ease-in-out infinite;
+        }
+        @keyframes pulse-border {
+            0%, 100% { border-color: var(--border); }
+            50% { border-color: var(--accent); }
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-family: var(--font);
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        textarea:focus { border-color: var(--accent); }
+        textarea::placeholder { color: var(--text-muted); }
+
+        .btn-row {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.85rem;
+            flex-wrap: wrap;
+        }
+
+        .eval-result {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.1rem 1.2rem;
+            margin-top: 0.75rem;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .eval-result.visible { display: block; }
+        .eval-result.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            color: var(--text-muted);
+            min-height: 5rem;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .generate-section { margin-bottom: 1.25rem; }
+        .generate-section .card { margin-bottom: 0; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.78rem;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            font-weight: 500;
+            background: var(--bg);
+            color: var(--text-muted);
+        }
+        .status-badge.online { color: var(--success); border: 1px solid var(--success); }
+        .status-badge.offline { color: var(--accent); border: 1px solid var(--accent); }
+        .status-badge.checking { color: var(--warning); border: 1px solid var(--warning); }
+
+        .eval-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .score {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .score .num { color: var(--accent); }
+
+        .feedback-section { margin-top: 0.75rem; }
+        .feedback-section strong { color: var(--accent); }
+
+        .inline-code {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            background: rgba(255,255,255,0.05);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: #fff;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 500px) {
+            body { padding: 1rem 0.75rem; }
+            .card { padding: 1rem; }
+            header h1 { font-size: 1.5rem; }
+            .settings-row { flex-direction: column; align-items: stretch; }
+            .settings-row input { min-width: auto; }
+            .settings-row select { min-width: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app">
+
+    <header>
+        <h1>Joke <span>Trainer</span></h1>
+        <p>Generate a premise, write a joke, get critiqued by AI</p>
+    </header>
+
+    <!-- Settings -->
+    <div class="card">
+        <div class="card-title">LLM Backend</div>
+        <div class="settings-row">
+            <label for="providerSelect">Provider</label>
+            <select id="providerSelect">
+                <option value="local">Local (LM Studio)</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="groq">Groq</option>
+                <option value="nvidia">NVIDIA NIM</option>
+                <option value="custom">Custom URL</option>
+            </select>
+            <span class="status-badge" id="statusBadge">Checking…</span>
+        </div>
+        <div class="settings-row" id="urlRow">
+            <label for="apiUrl">Base URL</label>
+            <input type="url" id="apiUrl" value="http://localhost:1234" spellcheck="false" />
+        </div>
+        <div class="settings-row" id="modelRow" style="display:none;">
+            <label for="apiModel">Model ID</label>
+            <input type="text" id="apiModel" value="" spellcheck="false" />
+        </div>
+        <div class="settings-row" id="keyRow" style="display:none;">
+            <label for="apiKey">API Key</label>
+            <input type="text" id="apiKey" value="" spellcheck="false" class="key-input" autocomplete="off" />
+        </div>
+        <div class="settings-comment" id="providerHint">No API key needed for local inference.</div>
+    </div>
+
+    <!-- Generate Premise -->
+    <div class="generate-section">
+        <div class="card">
+            <div class="card-title">Premise</div>
+            <div class="mode-selector">
+                <span class="mode-label">Style:</span>
+                <button class="mode-btn active" data-mode="short">Short</button>
+                <button class="mode-btn" data-mode="elaborate">Elaborate</button>
+            </div>
+            <button class="btn btn-primary btn-block" id="generateBtn">🎲  Generate a Random Premise</button>
+            <textarea class="premise-box" id="premiseBox" rows="2" placeholder="Click generate, or type your own premise here…"></textarea>
+        </div>
+    </div>
+
+    <!-- Write & Evaluate -->
+    <div class="card">
+        <div class="card-title">Your Joke</div>
+        <textarea id="jokeInput" placeholder="Write your joke here…"></textarea>
+        <div class="btn-row">
+            <button class="btn btn-primary" id="evaluateBtn">🔍  Evaluate Joke</button>
+            <button class="btn" id="clearBtn">Clear</button>
+        </div>
+    </div>
+
+    <!-- Evaluation Result -->
+    <div class="card" id="evalCard" style="display:none;">
+        <div class="eval-header">
+            <div class="card-title">Evaluation</div>
+            <div class="score" id="scoreDisplay">Score: <span class="num" id="scoreNum">—</span>/10</div>
+        </div>
+        <div class="eval-result" id="evalResult"></div>
+        <div class="feedback-section" id="feedbackSection" style="display:none;">
+            <strong>💡 Tips to improve</strong>
+            <div class="eval-result visible" id="feedbackResult" style="margin-top:0.5rem;"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+const $ = s => document.querySelector(s);
+const apiUrl       = $('#apiUrl');
+const statusBadge  = $('#statusBadge');
+const generateBtn  = $('#generateBtn');
+const premiseBox   = $('#premiseBox');
+const jokeInput    = $('#jokeInput');
+const evaluateBtn  = $('#evaluateBtn');
+const clearBtn     = $('#clearBtn');
+const evalCard     = $('#evalCard');
+const evalResult   = $('#evalResult');
+const scoreNum     = $('#scoreNum');
+const scoreDisplay = $('#scoreDisplay');
+const feedbackSection = $('#feedbackSection');
+const feedbackResult  = $('#feedbackResult');
+const toast        = $('#toast');
+
+let lastEval = null;
+
+// ─── Provider Definitions ────────────────────────────────────────────────────
+const PROVIDERS = {
+    local: {
+        name: 'Local (LM Studio)',
+        baseUrl: 'http://localhost:1234',
+        model: '',
+        needsKey: false,
+        chatPath: '/v1/chat/completions',
+        modelPath: '/v1/models',
+        hint: 'No API key needed — LM Studio uses the loaded model.'
+    },
+    openrouter: {
+        name: 'OpenRouter',
+        baseUrl: 'https://openrouter.ai/api/v1',
+        model: 'openrouter/free',
+        needsKey: true,
+        chatPath: '/chat/completions',
+        modelPath: '/models',
+        hint: 'Get a free API key at openrouter.ai/keys (no credit card).'
+    },
+    groq: {
+        name: 'Groq',
+        baseUrl: 'https://api.groq.com/openai/v1',
+        model: 'llama-3.3-70b-versatile',
+        needsKey: true,
+        chatPath: '/chat/completions',
+        modelPath: '/models',
+        hint: 'Get a free API key at console.groq.com (no credit card). Very fast inference.'
+    },
+    nvidia: {
+        name: 'NVIDIA NIM',
+        baseUrl: 'https://integrate.api.nvidia.com/v1',
+        model: 'deepseek-ai/deepseek-v4.1-flash',
+        needsKey: true,
+        chatPath: '/chat/completions',
+        modelPath: '/models',
+        hint: 'Free developer tier at build.nvidia.com (phone verification required).'
+    },
+    custom: {
+        name: 'Custom URL',
+        baseUrl: 'http://localhost:1234',
+        model: '',
+        needsKey: false,
+        chatPath: '/v1/chat/completions',
+        modelPath: '/v1/models',
+        hint: 'Enter any OpenAI-compatible API URL.'
+    }
+};
+
+let currentProvider = 'local';
+let savedCustomUrl = '';
+
+const LS_PREFIX = 'jokeTrainer_';
+
+function loadSaved() {
+    const saved = {};
+    try {
+        saved.provider = localStorage.getItem(LS_PREFIX + 'provider') || 'local';
+        saved.apiKey = localStorage.getItem(LS_PREFIX + 'apiKey') || '';
+        saved.customUrl = localStorage.getItem(LS_PREFIX + 'customUrl') || '';
+    } catch {}
+    return saved;
+}
+
+function saveProvider(preset) {
+    try { localStorage.setItem(LS_PREFIX + 'provider', preset); } catch {}
+}
+
+function saveApiKey(key) {
+    try { localStorage.setItem(LS_PREFIX + 'apiKey', key); } catch {}
+}
+
+function saveCustomUrl(url) {
+    try { localStorage.setItem(LS_PREFIX + 'customUrl', url); } catch {}
+}
+
+function applyProvider(preset) {
+    const p = PROVIDERS[preset];
+    if (!p) return;
+    currentProvider = preset;
+    saveProvider(preset);
+    apiUrl.value = p.baseUrl;
+    const modelField = $('#apiModel');
+    if (p.model) {
+        modelField.value = p.model;
+        $('#modelRow').style.display = '';
+    } else {
+        modelField.value = '';
+        $('#modelRow').style.display = 'none';
+    }
+    if (p.needsKey) {
+        $('#keyRow').style.display = '';
+    } else {
+        $('#keyRow').style.display = 'none';
+    }
+    $('#providerHint').textContent = p.hint;
+    scheduleCheck();
+}
+
+// ─── Toast ─────────────────────────────────────────────────────────────────
+function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// ─── Auth headers helper ───────────────────────────────────────────────────
+function getAuthHeaders() {
+    const p = PROVIDERS[currentProvider];
+    if (!p || !p.needsKey) return {};
+    const key = $('#apiKey').value.trim();
+    if (!key) return {};
+    return { 'Authorization': 'Bearer ' + key };
+}
+
+// ─── Connection check ──────────────────────────────────────────────────────
+async function checkConnection() {
+    const p = PROVIDERS[currentProvider];
+    const base = apiUrl.value.trim() || PROVIDERS.local.baseUrl;
+    const modelPath = p ? p.modelPath : '/v1/models';
+    const headers = getAuthHeaders();
+    headers['Content-Type'] = 'application/json';
+    statusBadge.textContent = 'Checking…';
+    statusBadge.className = 'status-badge checking';
+    try {
+        const r = await fetch('/api/proxy', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                target: base,
+                path: modelPath,
+                method: 'GET',
+                headers: getAuthHeaders()
+            }),
+            signal: AbortSignal.timeout(8000)
+        });
+        if (r.ok) {
+            statusBadge.textContent = '✓ Online';
+            statusBadge.className = 'status-badge online';
+            return true;
+        }
+        throw new Error('Not OK');
+    } catch {
+        statusBadge.textContent = '✗ Offline';
+        statusBadge.className = 'status-badge offline';
+        return false;
+    }
+}
+
+let checkTimer;
+function scheduleCheck() {
+    clearTimeout(checkTimer);
+    statusBadge.textContent = 'Checking…';
+    statusBadge.className = 'status-badge checking';
+    checkTimer = setTimeout(checkConnection, 600);
+}
+
+// ─── Provider change handler ───────────────────────────────────────────────
+$('#providerSelect').addEventListener('change', (e) => {
+    applyProvider(e.target.value);
+});
+apiUrl.addEventListener('input', () => {
+    scheduleCheck();
+    if (currentProvider === 'custom') saveCustomUrl(apiUrl.value.trim());
+});
+$('#apiKey').addEventListener('input', () => {
+    scheduleCheck();
+    saveApiKey($('#apiKey').value);
+});
+
+// Restore saved state
+(function restore() {
+    const saved = loadSaved();
+    currentProvider = saved.provider;
+    $('#providerSelect').value = saved.provider;
+    const p = PROVIDERS[saved.provider] || PROVIDERS.local;
+    apiUrl.value = saved.provider === 'custom' && saved.customUrl ? saved.customUrl : p.baseUrl;
+    $('#apiKey').value = saved.apiKey;
+    const modelField = $('#apiModel');
+    if (p.model) {
+        modelField.value = p.model;
+        $('#modelRow').style.display = '';
+    } else {
+        modelField.value = '';
+        $('#modelRow').style.display = 'none';
+    }
+    if (p.needsKey) {
+        $('#keyRow').style.display = '';
+    } else {
+        $('#keyRow').style.display = 'none';
+    }
+    $('#providerHint').textContent = p.hint;
+    scheduleCheck();
+})();
+
+// ─── LLM Call ──────────────────────────────────────────────────────────────
+async function callLLM(systemPrompt, userPrompt, options = {}) {
+    const p = PROVIDERS[currentProvider];
+    const base = apiUrl.value.trim() || PROVIDERS.local.baseUrl;
+    const chatPath = p ? p.chatPath : '/v1/chat/completions';
+    const modelVal = $('#apiModel').value.trim();
+    const body = { messages: [], temperature: options.temperature ?? 0.8, max_tokens: options.max_tokens ?? 800, stream: false };
+    if (modelVal) body.model = modelVal;
+    body.messages.push({ role: 'system', content: systemPrompt });
+    body.messages.push({ role: 'user', content: userPrompt });
+
+    const authHeaders = getAuthHeaders();
+    const proxyPayload = {
+        target: base,
+        path: chatPath,
+        method: 'POST',
+        body: body
+    };
+    if (Object.keys(authHeaders).length > 0) {
+        proxyPayload.headers = authHeaders;
+    }
+
+    const res = await fetch('/api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(proxyPayload),
+        signal: AbortSignal.timeout(1200000)
+    });
+
+    if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        throw new Error(`API error ${res.status}: ${errText || res.statusText}`);
+    }
+
+    const data = await res.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content) throw new Error('Empty response from LLM');
+    return content.trim();
+}
+
+// ─── Premise Mode Toggle ────────────────────────────────────────────────────
+let premiseMode = 'short';
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        premiseMode = btn.getAttribute('data-mode');
+    });
+});
+
+// ─── Generate Premise ──────────────────────────────────────────────────────
+generateBtn.addEventListener('click', async () => {
+    const base = apiUrl.value.trim() || DEFAULT_URL;
+    generateBtn.disabled = true;
+    generateBtn.textContent = '⚙️  Generating…';
+    premiseBox.className = 'premise-box loading';
+    premiseBox.value = 'Thinking of a premise…';
+
+    const isShort = premiseMode === 'short';
+
+    try {
+        const premise = await callLLM(
+            isShort
+                ? 'You are a comedy writing coach. Give a single short, open-ended topic for a joke. Just a broad subject or general scenario — leave plenty of room for the writer to fill in creatively. Examples: "misunderstandings at the DMV", "trying to return something without a receipt", "absurd office jargon", "ordering with a picky friend". Output ONLY the topic, no commentary, no quotes, no formatting.'
+                : 'You are a comedy writing coach. Generate a single, specific, creative premise or scenario for a joke. ' +
+                  'It should be something a comedian would be challenged by — an object, a situation, a modern annoyance, ' +
+                  'a relationship dynamic, a workplace absurdity, a tech frustration, or an everyday observation. ' +
+                  'Make it concrete and vivid, not generic (avoid "write a joke about a cat" — prefer "write a joke about ' +
+                  'a cat that learned to open the refrigerator at 4am"). Output ONLY the premise, no commentary, no quotes, no formatting.',
+            'Give me a random comedy premise.',
+            { temperature: 0.9, max_tokens: isShort ? 1500 : 2500 }
+        );
+        premiseBox.className = 'premise-box';
+        premiseBox.value = premise;
+    } catch (err) {
+        premiseBox.className = 'premise-box placeholder';
+        premiseBox.value = '⚠️  Failed to generate premise: ' + err.message;
+        showToast('Error generating premise');
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = '🎲  Generate a Random Premise';
+    }
+});
+
+// ─── Evaluate Joke ─────────────────────────────────────────────────────────
+evaluateBtn.addEventListener('click', async () => {
+    const joke = jokeInput.value.trim();
+    if (!joke) {
+        showToast('Write a joke first!');
+        jokeInput.focus();
+        return;
+    }
+
+    evaluateBtn.disabled = true;
+    evaluateBtn.textContent = '⚙️  Evaluating…';
+    evalCard.style.display = 'block';
+    evalResult.className = 'eval-result loading';
+    evalResult.innerHTML = '<span class="spinner"></span> Analyzing your joke…';
+    feedbackSection.style.display = 'none';
+    scoreNum.textContent = '…';
+
+    const premiseText = premiseBox.value.trim();
+    const premiseContext = premiseText && premiseText !== premiseBox.getAttribute('placeholder')
+        ? `The premise that was generated for this joke is: "${premiseText}"`
+        : 'There was no specific premise generated beforehand.';
+
+    try {
+        const raw = await callLLM(
+            'You are a professional comedy critic and writing coach. You evaluate jokes on structure, delivery, ' +
+            'originality, relatability, punchline effectiveness, and timing. You are thorough, honest, and constructive. ' +
+            'focus entirely on comedy craft.\n\n' +
+            'Respond in this exact format (no deviations):\n' +
+            'SCORE: X/10  (X = a number 1-10)\n\n' +
+            'EVALUATION:\n[2-4 paragraphs of detailed analysis — what worked, what didn\'t, structure, pacing, word choice, setup/punchline]\n\n' +
+            'IMPROVEMENTS:\n[3-5 specific, actionable bullet points the writer can use to improve this specific joke]\n\n' +
+            'Be honest — a 3/10 joke gets a 3, not a 7. Harsh but fair, always with actionable advice.',
+            `Here is my joke:\n\n"${joke}"\n\n${premiseContext}\n\nPlease evaluate it.`,
+            { temperature: 0.7, max_tokens: 4096 }
+        );
+
+        // Parse response
+        const scoreMatch = raw.match(/SCORE:\s*(\d{1,2})\/10/i);
+        const score = scoreMatch ? Math.min(10, Math.max(1, parseInt(scoreMatch[1]))) : null;
+
+        const evalMatch = raw.match(/EVALUATION:\s*([\s\S]*?)(?=IMPROVEMENTS:|$)/i);
+        const improvementMatch = raw.match(/IMPROVEMENTS:\s*([\s\S]*)/i);
+
+        const evalText = evalMatch ? evalMatch[1].trim() : raw;
+        const improveText = improvementMatch ? improvementMatch[1].trim() : '';
+
+        if (score !== null) scoreNum.textContent = score;
+        else scoreNum.textContent = '?';
+
+        evalResult.className = 'eval-result visible';
+        evalResult.textContent = evalText;
+
+        if (improveText) {
+            feedbackSection.style.display = 'block';
+            feedbackResult.textContent = improveText;
+        } else {
+            feedbackSection.style.display = 'none';
+        }
+
+        lastEval = { score, evaluation: evalText, improvements: improveText };
+    } catch (err) {
+        evalResult.className = 'eval-result visible';
+        evalResult.textContent = '⚠️  Evaluation failed: ' + err.message;
+        feedbackSection.style.display = 'none';
+        scoreNum.textContent = '—';
+        showToast('Error evaluating joke');
+    } finally {
+        evaluateBtn.disabled = false;
+        evaluateBtn.textContent = '🔍  Evaluate Joke';
+    }
+});
+
+// ─── Clear ─────────────────────────────────────────────────────────────────
+clearBtn.addEventListener('click', () => {
+    jokeInput.value = '';
+    evalCard.style.display = 'none';
+    evalResult.className = 'eval-result';
+    evalResult.textContent = '';
+    feedbackSection.style.display = 'none';
+    scoreNum.textContent = '—';
+});
+
+// ─── Keyboard shortcut ─────────────────────────────────────────────────────
+jokeInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        evaluateBtn.click();
+    }
+});
+</script>
+</body>
+</html>
