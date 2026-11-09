@@ -565,7 +565,6 @@ async function checkConnection() {
         if (!r.ok) throw new Error('proxy_unavailable');
     } catch (e) {
         if (e.message === 'proxy_unavailable' || e.name === 'TypeError') {
-            // Fall back to direct call (GitHub Pages)
             try {
                 r = await fetch(base + modelPath, {
                     headers: { ...authHeaders },
@@ -583,16 +582,13 @@ async function checkConnection() {
         }
     }
     if (r.ok) {
-            statusBadge.textContent = '✓ Online';
-            statusBadge.className = 'status-badge online';
-            return true;
-        }
-        throw new Error('Not OK');
-    } catch {
-        statusBadge.textContent = '✗ Offline';
-        statusBadge.className = 'status-badge offline';
-        return false;
+        statusBadge.textContent = '✓ Online';
+        statusBadge.className = 'status-badge online';
+        return true;
     }
+    statusBadge.textContent = '✗ Offline';
+    statusBadge.className = 'status-badge offline';
+    return false;
 }
 
 let checkTimer;
