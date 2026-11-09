@@ -1,8 +1,10 @@
 # 🎭 Joke Trainer
 
-Write jokes, get AI-powered feedback — works with any OpenAI-compatible local LLM (LM Studio, Ollama, etc.).
+Write jokes, get AI-powered feedback — works with local LLMs (LM Studio, Ollama) and cloud APIs (OpenRouter, Groq, NVIDIA NIM).
 
-## Quick Start
+**Try it live:** https://drobin04.github.io/joke-trainer/
+
+## Quick Start (local)
 
 ```bash
 cd joke-trainer
@@ -13,32 +15,43 @@ Open **http://localhost:8080** in your browser.
 
 ## How to Use
 
-1. **Make sure your LLM is running** — LM Studio, Ollama, or any OpenAI-compatible server.
-2. **Set the backend URL** in the top bar of the app (default: `http://localhost:1234`).
-3. **Generate a premise** — click the button to get a random joke scenario.
-4. **Write your joke** in the text area.
-5. **Evaluate** — get a score, detailed breakdown, and specific tips to improve.
+1. **Pick a provider** in the settings bar — Local, OpenRouter, Groq, NVIDIA NIM, or Custom.
+2. **Add an API key** if using a cloud provider (free tiers available — no credit card needed).
+3. **Generate a premise** — choose Short (broad topic) or Elaborate (detailed scenario).
+4. **Write your joke** in the text area — you can also edit the premise box directly.
+5. **Evaluate** — get a score /10, detailed analysis, and specific tips to improve.
 
-## Backend URLs
+## Providers
 
-| Service | Default URL |
-|---|---|
-| LM Studio | http://localhost:1234 |
-| Ollama | http://localhost:11434 |
-| Remote server | http://192.168.x.x:1234 |
+| Provider | Default Model | Key Required |
+|---|---|---|
+| Local (LM Studio) | Uses loaded model | No |
+| OpenRouter | `openrouter/free` | Yes (free at openrouter.ai/keys) |
+| Groq | `llama-3.3-70b-versatile` | Yes (free at console.groq.com) |
+| NVIDIA NIM | `deepseek-ai/deepseek-v4.1-flash` | Yes (free at build.nvidia.com) |
+| Custom URL | User-defined | Optional |
 
-The app proxies all API calls through the local server to avoid CORS issues, so remote/ LAN backends work too.
+## Running
+
+**Locally with proxy** (recommended — works with all backends including local):
+```bash
+./serve.sh
+# or: python3 server.py
+```
+Then open http://localhost:8080.
+
+**GitHub Pages** (cloud providers only):
+Open https://drobin04.github.io/joke-trainer/ — the app falls back to direct API calls when the local proxy isn't available.
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `index.html` | The web app — open via the server, not directly from `file://` |
-| `server.py` | Python proxy server that serves the app and forwards API calls |
+| `index.html` | The web app (standalone, no build step) |
+| `server.py` | Python proxy server (optional — for local/LAN backends) |
 | `serve.sh` | Shortcut — runs `server.py` |
-| `README.md` | This file |
 
 ## Requirements
 
-- Python 3 (pre-installed on most systems)
-- A running local LLM server (e.g. LM Studio)
+- **Local mode:** Python 3 + LM Studio or Ollama
+- **Cloud mode:** A browser and free API keys from your chosen provider
