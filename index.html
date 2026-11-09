@@ -546,23 +546,43 @@ async function checkConnection() {
     const p = PROVIDERS[currentProvider];
     const base = apiUrl.value.trim() || PROVIDERS.local.baseUrl;
     const modelPath = p ? p.modelPath : '/v1/models';
-    const headers = getAuthHeaders();
-    headers['Content-Type'] = 'application/json';
+    const authHeaders = getAuthHeaders();
     statusBadge.textContent = 'Checking…';
     statusBadge.className = 'status-badge checking';
+    let r;
     try {
-        const r = await fetch('/api/proxy', {
+        r = await fetch('/api/proxy', {
             method: 'POST',
-            headers: headers,
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 target: base,
                 path: modelPath,
                 method: 'GET',
-                headers: getAuthHeaders()
+                headers: Object.keys(authHeaders).length > 0 ? authHeaders : undefined
             }),
             signal: AbortSignal.timeout(8000)
         });
-        if (r.ok) {
+        if (r.status === 404) throw new Error('proxy_unavailable');
+    } catch (e) {
+        if (e.message === 'proxy_unavailable' || e.name === 'TypeError') {
+            // Fall back to direct call (GitHub Pages)
+            try {
+                r = await fetch(base + modelPath, {
+                    headers: { ...authHeaders },
+                    signal: AbortSignal.timeout(8000)
+                });
+            } catch {
+                statusBadge.textContent = '✗ Offline';
+                statusBadge.className = 'status-badge offline';
+                return false;
+            }
+        } else {
+            statusBadge.textContent = '✗ Offline';
+            statusBadge.className = 'status-badge offline';
+            return false;
+        }
+    }
+    if (r.ok) {
             statusBadge.textContent = '✓ Online';
             statusBadge.className = 'status-badge online';
             return true;
@@ -633,22 +653,39 @@ async function callLLM(systemPrompt, userPrompt, options = {}) {
     body.messages.push({ role: 'user', content: userPrompt });
 
     const authHeaders = getAuthHeaders();
-    const proxyPayload = {
-        target: base,
-        path: chatPath,
-        method: 'POST',
-        body: body
-    };
-    if (Object.keys(authHeaders).length > 0) {
-        proxyPayload.headers = authHeaders;
-    }
 
-    const res = await fetch('/api/proxy', {
+    // Try proxy first (local server), fall back to direct call for GitHub Pages
+    const directUrl = base + chatPath;
+    const fetchOpts = {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(proxyPayload),
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify(body),
         signal: AbortSignal.timeout(1200000)
-    });
+    };
+
+    let res;
+    try {
+        res = await fetch('/api/proxy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                target: base,
+                path: chatPath,
+                method: 'POST',
+                body: body,
+                headers: Object.keys(authHeaders).length > 0 ? authHeaders : undefined
+            }),
+            signal: AbortSignal.timeout(1200000)
+        });
+        if (res.status === 404) throw new Error('proxy_unavailable');
+    } catch (e) {
+        if (e.message === 'proxy_unavailable' || e.name === 'TypeError') {
+            // Fall back to direct call (GitHub Pages or no proxy server)
+            res = await fetch(directUrl, fetchOpts);
+        } else {
+            throw e;
+        }
+    }
 
     if (!res.ok) {
         const errText = await res.text().catch(() => '');
