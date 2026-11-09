@@ -562,7 +562,7 @@ async function checkConnection() {
             }),
             signal: AbortSignal.timeout(8000)
         });
-        if (r.status === 404) throw new Error('proxy_unavailable');
+        if (!r.ok) throw new Error('proxy_unavailable');
     } catch (e) {
         if (e.message === 'proxy_unavailable' || e.name === 'TypeError') {
             // Fall back to direct call (GitHub Pages)
@@ -677,7 +677,7 @@ async function callLLM(systemPrompt, userPrompt, options = {}) {
             }),
             signal: AbortSignal.timeout(1200000)
         });
-        if (res.status === 404) throw new Error('proxy_unavailable');
+        if (!res.ok) throw new Error('proxy_unavailable');
     } catch (e) {
         if (e.message === 'proxy_unavailable' || e.name === 'TypeError') {
             // Fall back to direct call (GitHub Pages or no proxy server)
